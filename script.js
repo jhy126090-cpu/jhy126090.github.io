@@ -4,11 +4,13 @@
 
 const STORAGE_KEY = "lol-solo-tracker-state-v1";
 
-// 연승 보너스 표: 해당 연승 스택에 "도달하는 순간" 1회 지급
-const STREAK_BONUS = { 3: 5, 4: 15, 5: 30, 6: 50 };
-// 6연승 이후로도 계속 이어지면 6연승 보너스(50점)를 반복 적용하고 싶다면
-// KEEP_BONUS_AFTER_6 을 true로 바꾸세요. 기본은 "1회만" 지급됩니다.
-const KEEP_BONUS_AFTER_6 = false;
+// 연승 보너스: 게임 전체에서 "가장 길었던 연승" 하나만 기준으로 1회 지급
+// 3연승 +5, 4연승 +15, 5연승 +30, 6연승 +50, 7연승 +75 ... 규칙적으로 증가 (계차가 +5씩 커짐)
+// 공식: 2.5 * (n-1) * (n-2)  (n < 3이면 0)
+function streakBonus(n) {
+  if (n < 3) return 0;
+  return 2.5 * (n - 1) * (n - 2);
+}
 
 // deeplol.gg 기준 "반짝이는 판(하이라이트)" 표시된 경기에 주는 보너스 점수
 const HIGHLIGHT_BONUS = 20;
@@ -35,8 +37,8 @@ function recomputeAll() {
     p.wins = 0;
     p.losses = 0;
     p.streak = 0;
+    p.maxStreak = 0;
     p.winScoreSum = 0;
-    p.bonusScoreSum = 0;
     p.highlightScoreSum = 0;
   });
 
@@ -50,12 +52,7 @@ function recomputeAll() {
       p.wins++;
       p.streak++;
       p.winScoreSum += m.score;
-
-      if (p.streak in STREAK_BONUS) {
-        p.bonusScoreSum += STREAK_BONUS[p.streak];
-      } else if (KEEP_BONUS_AFTER_6 && p.streak > 6) {
-        p.bonusScoreSum += STREAK_BONUS[6];
-      }
+      if (p.streak > p.maxStreak) p.maxStreak = p.streak;
     } else {
       p.losses++;
       p.streak = 0;
@@ -66,6 +63,11 @@ function recomputeAll() {
       p.highlightScoreSum += HIGHLIGHT_BONUS;
     }
   }
+
+  // 연승 보너스는 "가장 길었던 연승" 하나만 기준으로 1회 계산
+  state.players.forEach(p => {
+    p.bonusScoreSum = streakBonus(p.maxStreak);
+  });
 }
 
 function totalGames(p) { return p.wins + p.losses; }
@@ -95,7 +97,7 @@ addForm.addEventListener("submit", (e) => {
     id: crypto.randomUUID(),
     name,
     team: selectedTeam,
-    wins: 0, losses: 0, streak: 0,
+    wins: 0, losses: 0, streak: 0, maxStreak: 0,
     winScoreSum: 0, bonusScoreSum: 0, highlightScoreSum: 0
   });
 
@@ -194,6 +196,7 @@ function renderScoreTable() {
       <td class="win-cell">${p.wins}</td>
       <td class="loss-cell">${p.losses}</td>
       <td class="streak-cell">${p.streak > 0 ? p.streak + "연승" : "-"}</td>
+      <td class="streak-cell">${p.maxStreak > 0 ? p.maxStreak + "연승" : "-"}</td>
       <td class="${winClass}">${p.winScoreSum}</td>
       <td class="bonus-cell">${p.bonusScoreSum > 0 ? "+" + p.bonusScoreSum : 0}</td>
       <td class="highlight-cell">${p.highlightScoreSum > 0 ? "+" + p.highlightScoreSum : 0}</td>

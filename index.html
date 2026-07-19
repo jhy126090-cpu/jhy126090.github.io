@@ -16,7 +16,6 @@
   <div class="hero-inner">
     <p class="eyebrow">SUMMONER'S RIFT · SOLO QUEUE WAGER</p>
     <h1 class="hero-title">솔랭내기 스코어보드</h1>
-    <p class="hero-sub">한 판, 한 판이 점수가 된다. 연승은 배로 돌아온다.</p>
   </div>
   <div class="hero-stats" id="heroStats">
     <div class="hero-stat">
@@ -83,13 +82,16 @@
 
     <div class="panel-block">
       <h2 class="panel-title"><span class="panel-num">03</span>보너스 점수 안내</h2>
+      <p class="bonus-note">경기 중 <strong>가장 길었던 연승</strong> 하나만 기준으로 1회 지급됩니다.</p>
       <ul class="streak-table">
         <li><span class="streak-n">3연승</span><span class="streak-b">+5</span></li>
         <li><span class="streak-n">4연승</span><span class="streak-b">+15</span></li>
         <li><span class="streak-n">5연승</span><span class="streak-b">+30</span></li>
-        <li><span class="streak-n">6연승↑</span><span class="streak-b">+50</span></li>
+        <li><span class="streak-n">6연승</span><span class="streak-b">+50</span></li>
+        <li><span class="streak-n">7연승</span><span class="streak-b">+75</span></li>
         <li><span class="streak-n">🌟 반짝이는 판</span><span class="streak-b">+20</span></li>
       </ul>
+      <p class="bonus-note bonus-note-sub">8연승 이상도 같은 규칙(계차 +5씩 증가)으로 계속 커집니다.</p>
       <button id="resetBtn" class="btn-ghost">전체 초기화</button>
     </div>
 
@@ -110,6 +112,7 @@
             <th>승</th>
             <th>패</th>
             <th>연승</th>
+            <th>최다연승</th>
             <th>승리점수합산</th>
             <th>연승보너스</th>
             <th>🌟하이라이트</th>
