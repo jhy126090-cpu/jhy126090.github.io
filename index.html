@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>솔랭내기 스코어보드</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="rift-bg"></div>
+
+<header class="hero">
+  <div class="hero-inner">
+    <p class="eyebrow">SUMMONER'S RIFT · SOLO QUEUE WAGER</p>
+    <h1 class="hero-title">솔랭내기 스코어보드</h1>
+    <p class="hero-sub">한 판, 한 판이 점수가 된다. 연승은 배로 돌아온다.</p>
+  </div>
+  <div class="hero-stats" id="heroStats">
+    <div class="hero-stat">
+      <span class="hero-stat-num" id="statTotalGames">0</span>
+      <span class="hero-stat-label">총 경기</span>
+    </div>
+    <div class="hero-stat">
+      <span class="hero-stat-num" id="statLeader">-</span>
+      <span class="hero-stat-label">1위</span>
+    </div>
+    <div class="hero-stat">
+      <span class="hero-stat-num" id="statLeaderScore">0</span>
+      <span class="hero-stat-label">최고 점수</span>
+    </div>
+  </div>
+</header>
+
+<main class="layout">
+
+  <!-- 좌측: 참가자 등록 + 경기 기록 -->
+  <section class="panel panel-control">
+
+    <div class="panel-block">
+      <h2 class="panel-title"><span class="panel-num">01</span>참가자 등록</h2>
+      <form id="addForm" class="stack">
+        <input type="text" id="nameInput" placeholder="소환사명" required maxlength="12">
+        <div class="team-pick" id="teamPick">
+          <button type="button" class="team-btn team-blue active" data-team="1">블루팀</button>
+          <button type="button" class="team-btn team-red" data-team="2">레드팀</button>
+        </div>
+        <button type="submit" class="btn-primary">참가자 추가</button>
+      </form>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="panel-block">
+      <h2 class="panel-title"><span class="panel-num">02</span>경기 결과 기록</h2>
+      <form id="matchForm" class="stack">
+        <select id="playerSelect" required>
+          <option value="" disabled selected>참가자 선택</option>
+        </select>
+
+        <div class="result-pick" id="resultPick">
+          <button type="button" class="result-btn result-win active" data-result="win">승리</button>
+          <button type="button" class="result-btn result-lose" data-result="lose">패배</button>
+        </div>
+
+        <p class="score-note">점수는 18~23 사이에서 <strong>자동으로 랜덤 결정</strong>됩니다.</p>
+
+        <label class="highlight-check">
+          <input type="checkbox" id="highlightInput">
+          <span>🌟 deeplol.gg 기준 반짝이는 판 (+20점)</span>
+        </label>
+
+        <input type="text" id="championInput" placeholder="사용 챔피언 (선택, 예: 아리)" maxlength="16">
+
+        <button type="submit" class="btn-primary btn-accent">경기 기록 추가</button>
+      </form>
+      <p class="hint" id="lastMatchHint"></p>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="panel-block">
+      <h2 class="panel-title"><span class="panel-num">03</span>보너스 점수 안내</h2>
+      <ul class="streak-table">
+        <li><span class="streak-n">3연승</span><span class="streak-b">+5</span></li>
+        <li><span class="streak-n">4연승</span><span class="streak-b">+15</span></li>
+        <li><span class="streak-n">5연승</span><span class="streak-b">+30</span></li>
+        <li><span class="streak-n">6연승↑</span><span class="streak-b">+50</span></li>
+        <li><span class="streak-n">🌟 반짝이는 판</span><span class="streak-b">+20</span></li>
+      </ul>
+      <button id="resetBtn" class="btn-ghost">전체 초기화</button>
+    </div>
+
+  </section>
+
+  <!-- 우측: 스코어보드 -->
+  <section class="panel panel-board">
+    <h2 class="panel-title board-title"><span class="panel-num">04</span>스코어보드</h2>
+
+    <div class="table-wrap">
+      <table id="scoreTable">
+        <thead>
+          <tr>
+            <th>순위</th>
+            <th>참가자</th>
+            <th>팀</th>
+            <th>총판수</th>
+            <th>승</th>
+            <th>패</th>
+            <th>연승</th>
+            <th>승리점수합산</th>
+            <th>연승보너스</th>
+            <th>🌟하이라이트</th>
+            <th>총점</th>
+          </tr>
+        </thead>
+        <tbody id="scoreBody">
+          <!-- rows injected -->
+        </tbody>
+      </table>
+    </div>
+
+    <div class="team-summary" id="teamSummary"></div>
+
+    <div class="log-section">
+      <h3 class="log-title">경기 로그</h3>
+      <div class="log-filter" id="logFilter"></div>
+      <ul class="match-log" id="matchLog"></ul>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <p>기록은 브라우저(localStorage)에 자동 저장됩니다 · deeplol.gg 연동 안내는 README.md 참고</p>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>
