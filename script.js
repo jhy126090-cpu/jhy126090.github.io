@@ -1,8 +1,30 @@
 /* ==========================================================
    솔랭내기 스코어보드 - 상태 관리 + 로직
+   (여러 명이 같은 데이터를 실시간으로 공유하도록 Firebase Firestore 사용)
    ========================================================== */
 
-const STORAGE_KEY = "lol-solo-tracker-state-v1";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getFirestore, doc, setDoc, onSnapshot
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+// ⚠️ 여기에 본인의 Firebase 프로젝트 설정값을 넣어주세요.
+// Firebase 콘솔 > 프로젝트 설정 > 일반 > "내 앱" 에서 확인 가능합니다.
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// 이 문서 하나에 참가자/경기 기록 전체를 저장합니다.
+// 여러 개의 방(세션)을 운영하고 싶다면 "shared" 대신 원하는 방 이름으로 바꾸면 됩니다.
+const stateDocRef = doc(db, "scoreboard", "shared");
 
 // 연승 보너스: 게임 전체에서 "가장 길었던 연승" 하나만 기준으로 1회 지급
 // 3연승 +5, 4연승 +15, 5연승 +30, 6연승 +50, 7연승 +75 ... 규칙적으로 증가 (계차가 +5씩 커짐)
@@ -15,18 +37,15 @@ function streakBonus(n) {
 // deeplol.gg 기준 "반짝이는 판(하이라이트)" 표시된 경기에 주는 보너스 점수
 const HIGHLIGHT_BONUS = 20;
 
-let state = loadState();
+// 첫 로딩 시 / 서버에서 아직 아무 응답이 없을 때 쓰는 빈 상태
+let state = { players: [], matches: [] };
 
-function loadState() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
-  } catch (e) { console.warn("state load 실패", e); }
-  return { players: [], matches: [] };
-}
-
+// Firestore에 상태 전체를 저장 (다른 접속자에게도 실시간으로 반영됨)
 function saveState() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  setDoc(stateDocRef, state).catch((e) => {
+    console.error("저장 실패", e);
+    alert("저장에 실패했습니다. Firebase 설정을 확인해주세요.");
+  });
 }
 
 /* ---------- 통계 재계산 ----------
@@ -349,6 +368,22 @@ document.getElementById("resetBtn").addEventListener("click", () => {
   renderAll();
 });
 
-/* ---------- 시작 ---------- */
-recomputeAll();
-renderAll();
+/* ---------- 시작 ----------
+   localStorage처럼 한 번만 불러오는 대신, Firestore 문서를 계속 "구독"합니다.
+   나 또는 다른 사람이 기록을 추가/삭제할 때마다 이 콜백이 다시 실행되어
+   화면이 실시간으로 갱신됩니다. */
+onSnapshot(
+  stateDocRef,
+  (snap) => {
+    state = snap.exists() ? snap.data() : { players: [], matches: [] };
+    // 혹시 옛 데이터에 필드가 없을 경우를 대비한 기본값 보정
+    state.players = state.players || [];
+    state.matches = state.matches || [];
+    recomputeAll();
+    renderAll();
+  },
+  (error) => {
+    console.error("실시간 동기화 실패", error);
+    alert("데이터를 불러오지 못했습니다. Firebase 설정을 확인해주세요.");
+  }
+);
